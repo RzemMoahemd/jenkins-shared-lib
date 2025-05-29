@@ -28,6 +28,7 @@ def call(Map config) {
                 steps {
                     dir(PROJECT_PATH) {
                         script {
+                            sh "docker --version"
                             docker.build("${IMAGE_NAME}:latest")
                         }
                     }
@@ -48,6 +49,12 @@ def call(Map config) {
         post {
             always {
                 cleanWs()
+            }
+             success {
+                echo "Build réussi !"
+            }
+            failure {
+                echo "Échec du build"
             }
         }
     }
