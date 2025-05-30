@@ -6,7 +6,8 @@ def call(Map config) {
             SERVICE_NAME = "${config.serviceName}"
             IMAGE_NAME = "${config.imageName}"
             PROJECT_PATH = "${config.projectPath}"
-            NEXUS_URL = "http://10.112.62.168:8081/"
+            NEXUS_URL = "10.112.62.168:8081"  // Retirer le schéma http://
+            REGISTRY_REPO = "votre-repo-nexus"  // Ajouter le nom du repository Nexus
         }
         
         stages {
