@@ -24,22 +24,49 @@ def call(Map config) {
                 }
             }
             
-            stage('Build Docker Image') {
-                steps {
-                    dir(PROJECT_PATH) {
-                        script {
-                            sh "docker --version"
-                            docker.build("${IMAGE_NAME}:latest")
-                        }
+            stage('Build and Push Docker Image') {
+                agent {
+                    kubernetes {
+                        defaultContainer 'kaniko'
+                        yaml """
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:latest
+    command: ["/busybox/cat"]
+    tty: true
+    volumeMounts:
+    - name: docker-config
+      mountPath: /kaniko/.docker
+  volumes:
+  - name: docker-config
+    configMap:
+      name: docker-config  # ConfigMap avec vos credentials
+"""
                     }
                 }
-            }
-            
-            stage('Push to Nexus') {
                 steps {
-                    script {
-                        docker.withRegistry(NEXUS_URL, 'nexus-credentials') {
-                            docker.image("${IMAGE_NAME}:latest").push()
+                    dir(PROJECT_PATH) {
+                        withCredentials([usernamePassword(
+                            credentialsId: 'nexus-credentials',
+                            usernameVariable: 'REGISTRY_USER',
+                            passwordVariable: 'REGISTRY_PASSWORD'
+                        )]) {
+                            sh """
+                                mkdir -p /kaniko/.docker
+                                # Création du fichier de configuration Docker
+                                echo "{\"auths\":{\"${NEXUS_URL}\":{\"auth\":\"$(echo -n ${REGISTRY_USER}:${REGISTRY_PASSWORD} | base64)\"}}}" > /kaniko/.docker/config.json
+                                
+                                # Construction et envoi de l'image
+                                /kaniko/executor \
+                                  --dockerfile=Dockerfile \
+                                  --context=${WORKSPACE}/${PROJECT_PATH} \
+                                  --destination=${NEXUS_URL}/${REGISTRY_REPO}/${IMAGE_NAME}:latest \
+                                  --insecure \
+                                  --skip-tls-verify
+                            """
                         }
                     }
                 }
@@ -50,7 +77,7 @@ def call(Map config) {
             always {
                 cleanWs()
             }
-             success {
+            success {
                 echo "Build réussi !"
             }
             failure {
