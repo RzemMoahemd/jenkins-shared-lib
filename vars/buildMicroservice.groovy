@@ -30,7 +30,7 @@ def call(Map config) {
             script {
                 // Réparer les permissions
                 sh '''
-                    sudo chmod 777 /var/run/docker.sock || true
+                    chmod 777 /var/run/docker.sock || true
                     docker info
                 '''
                 
