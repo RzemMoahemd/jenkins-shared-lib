@@ -26,8 +26,14 @@ def call(Map config) {
 
             stage('Build Docker Image') {
     steps {
-        container('dind') {  // Exécute dans le conteneur DinD
-            dir(PROJECT_PATH) {
+        dir(PROJECT_PATH) {
+            script {
+                // Réparer les permissions
+                sh '''
+                    sudo chmod 777 /var/run/docker.sock || true
+                    docker info
+                '''
+                
                 sh "docker build -t ${IMAGE_NAME}:latest ."
             }
         }
