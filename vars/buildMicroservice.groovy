@@ -23,24 +23,34 @@ def call(Map config) {
                     }
                 }
             }
-            
+
             stage('Build Docker Image') {
     steps {
-        dir(PROJECT_PATH) {
-            script {
-                // Vérification du socket Docker
-                sh '''
-                    echo "Vérification de l'accès à Docker:"
-                    ls -l /var/run/docker.sock
-                    docker info
-                '''
-                
-                // Construction manuelle de l'image
+        container('dind') {  // Exécute dans le conteneur DinD
+            dir(PROJECT_PATH) {
                 sh "docker build -t ${IMAGE_NAME}:latest ."
             }
         }
     }
 }
+            
+//             stage('Build Docker Image') {
+//     steps {
+//         dir(PROJECT_PATH) {
+//             script {
+//                 // Vérification du socket Docker
+//                 sh '''
+//                     echo "Vérification de l'accès à Docker:"
+//                     ls -l /var/run/docker.sock
+//                     docker info
+//                 '''
+                
+//                 // Construction manuelle de l'image
+//                 sh "docker build -t ${IMAGE_NAME}:latest ."
+//             }
+//         }
+//     }
+// }
             
             stage('Push to Nexus') {
                 steps {
