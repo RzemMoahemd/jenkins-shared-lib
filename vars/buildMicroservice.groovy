@@ -9,7 +9,18 @@ def call(Map config) {
             NEXUS_URL = "http://10.112.62.168:8081/"
         }
         
+        
         stages {
+            stage('Wait for DNS ready') {
+            steps {
+                sh '''
+                    for i in {1..5}; do
+                        nslookup github.com && nslookup repo.maven.apache.org && break || sleep 5
+                    done
+                '''
+            }
+        }
+
             stage('Checkout') {
                 steps {
                     retry(3) {
