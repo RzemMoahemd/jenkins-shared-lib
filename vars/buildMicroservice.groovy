@@ -12,9 +12,13 @@ def call(Map config) {
         stages {
             stage('Checkout') {
                 steps {
-                    checkout scm
-                }
-            }
+                    retry(3) {
+                        timeout(time: 5, unit: 'MINUTES') {
+                            checkout scm
+                        }
+                    }
+                 }
+            }   
             
             stage('Build') {
                 steps {
@@ -27,13 +31,7 @@ def call(Map config) {
             stage('Build Docker Image') {
     steps {
         dir(PROJECT_PATH) {
-            script {
-                // Réparer les permissions
-                sh '''
-                    chmod 777 /var/run/docker.sock || true
-                    docker info
-                '''
-                
+            script { 
                 sh "docker build -t ${IMAGE_NAME}:latest ."
             }
         }
