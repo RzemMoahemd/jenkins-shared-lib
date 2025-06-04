@@ -15,31 +15,14 @@ def call(Map config) {
         
         stages {
             stage('Wait for DNS ready') {
-    steps {
-        script {
-            // Install required tools with sudo
-            sh '''
-                sudo apt-get update
-                sudo apt-get install -y dnsutils iputils-ping curl
-            '''
-            
-            // Verify DNS resolution
-            int maxTries = 5
-            int waitTime = 10
-            for(int i = 0; i < maxTries; i++) {
-                try {
-                    sh 'nslookup repo.maven.apache.org'
-                    sh 'ping -c 3 repo.maven.apache.org'
-                    echo "DNS verification successful"
-                    break
-                } catch (Exception e) {
-                    echo "DNS not ready yet. Attempt ${i+1}/${maxTries}"
-                    sleep(waitTime)
-                }
+            steps {
+                sh '''
+                    for i in {1..5}; do
+                        nslookup github.com && nslookup repo.maven.apache.org && break || sleep 5
+                    done
+                '''
             }
         }
-    }
-}
 
             stage('Checkout') {
                 steps {
