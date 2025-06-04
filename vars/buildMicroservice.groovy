@@ -41,6 +41,7 @@ def call(Map config) {
                 }
             }
         }
+            }
 
             stage('Checkout') {
                 steps {
