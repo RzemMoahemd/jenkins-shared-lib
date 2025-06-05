@@ -3,8 +3,8 @@ def call(Map config) {
         agent any
         
         environment {
-            HTTP_PROXY = "http://squid-proxy.jenkins.svc.cluster.local:3128"
-            HTTPS_PROXY = "http://squid-proxy.jenkins.svc.cluster.local:3128"
+            HTTP_PROXY = "http://squid-proxy.jenkins:3128"
+            HTTPS_PROXY = "http://squid-proxy.jenkins:3128"
             NO_PROXY = "localhost,127.0.0.1,.svc.cluster.local"
             SERVICE_NAME = "${config.serviceName}"
             IMAGE_NAME = "${config.imageName}"
