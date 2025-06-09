@@ -114,15 +114,15 @@ def call(Map config) {
         }
         
         stages {
-            stage('Wait for DNS ready') {
-                steps {
-                    sh '''
-                        for i in {1..5}; do
-                            nslookup github.com && nslookup repo.maven.apache.org && break || sleep 5
-                        done
-                    '''
-                }
-            }
+            // stage('Wait for DNS ready') {
+            //     steps {
+            //         sh '''
+            //             for i in {1..5}; do
+            //                 nslookup github.com && nslookup repo.maven.apache.org && break || sleep 5
+            //             done
+            //         '''
+            //     }
+            // }
 
             stage('Checkout') {
                 steps {
