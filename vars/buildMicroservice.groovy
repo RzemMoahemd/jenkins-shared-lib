@@ -111,6 +111,7 @@ def call(Map config) {
             PROJECT_PATH = "${config.projectPath}"
             NEXUS_URL = "http://10.112.62.168:8081/"
             DOCKERHUB_CREDS = credentials('dockerCredentiel')
+            KUBECONFIG = credentials('kubeconfig')
         }
         
         stages {
@@ -223,6 +224,19 @@ def call(Map config) {
           }
         }
       }
+
+      stage('Deploy to Kubernetes') {
+    steps {
+        script {
+            // Se déplacer dans le dossier du microservice puis dans k8s
+            dir("${PROJECT_PATH}/k8s") {
+                sh "kubectl apply -f deployment.yaml"
+                sh "kubectl rollout status deployment/${SERVICE_NAME} --timeout=300s"
+                sh "kubectl get pods -l app=${SERVICE_NAME}"
+            }
+        }
+    }
+}
     
         }
         
