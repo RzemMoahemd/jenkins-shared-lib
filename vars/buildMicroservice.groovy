@@ -138,7 +138,7 @@ def call(Map config) {
                 steps {
                     dir(PROJECT_PATH) {
                         // Utilisation du settings.xml avec les credentials Nexus
-                        sh "mvn -s /root/settings.xml clean package -DskipTests"
+                        sh "mvn -s /opt/apache-maven-3.6.3/conf/settings.xml clean package -DskipTests"
                     }
                 }
             }
@@ -147,7 +147,7 @@ def call(Map config) {
                 steps {
                     dir(PROJECT_PATH) {
                         // Déploiement de l'artefact vers Nexus
-                        sh "mvn -s /root/settings.xml deploy -DskipTests"
+                        sh "mvn -s /opt/apache-maven-3.6.3/conf/settings.xml deploy -DskipTests"
                     }
                 }
             }
