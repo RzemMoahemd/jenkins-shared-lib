@@ -157,9 +157,9 @@ def call(Map config) {
                     dir(PROJECT_PATH) {
                         script {
                             // Récupération des infos du pom.xml
-                          //  def pom = readMavenPom file: 'pom.xml'
-                          //  def artifactId = pom.artifactId
-                          //  def version = pom.version
+                            def pom = readMavenPom file: 'pom.xml'
+                            def artifactId = pom.artifactId
+                            def version = pom.version
                             
                             // Téléchargement de l'artefact depuis Nexus
                            // sh """
