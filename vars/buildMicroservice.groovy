@@ -107,7 +107,7 @@ def call(Map config) {
             HTTPS_PROXY = "http://squid-proxy.jenkins:3128"
             NO_PROXY = "localhost,127.0.0.1,.svc.cluster.local"
             SERVICE_NAME = "${config.serviceName}"
-            IMAGE_NAME = "${config.imageName}"
+            IMAGE_NAME = "rzem/${config.serviceName}" 
             PROJECT_PATH = "${config.projectPath}"
             NEXUS_URL = "http://10.112.62.168:8081/"
             DOCKERHUB_CREDS = credentials('dockerCredentiel')
@@ -157,15 +157,15 @@ def call(Map config) {
                     dir(PROJECT_PATH) {
                         script {
                             // Récupération des infos du pom.xml
-                            def pom = readMavenPom file: 'pom.xml'
-                            def artifactId = pom.artifactId
-                            def version = pom.version
+                          //  def pom = readMavenPom file: 'pom.xml'
+                          //  def artifactId = pom.artifactId
+                          //  def version = pom.version
                             
                             // Téléchargement de l'artefact depuis Nexus
-                            sh """
-                                curl -u admin:admin -o target/${artifactId}-${version}.jar \
-                                ${NEXUS_URL}/repository/maven-releases/${pom.groupId.replace('.', '/')}/${artifactId}/${version}/${artifactId}-${version}.jar
-                            """
+                           // sh """
+                            //    curl -u admin:admin -o target/${artifactId}-${version}.jar \
+                             //   ${NEXUS_URL}/repository/maven-snapshots/${pom.groupId.replace('.', '/')}/${artifactId}/${version}/${artifactId}-${version}.jar
+                          //  """
                             
                             // Construction de l'image Docker
                             sh "docker build --build-arg ARTIFACT_NAME=${artifactId}-${version}.jar -t ${IMAGE_NAME}:latest ."
@@ -184,25 +184,46 @@ def call(Map config) {
             //     }
             // }
 
-            stage('Push to DockerHub') {
-                steps {
-                    script {
-                        // Tag pour DockerHub
-                        def dockerHubImage = "rzem/${SERVICE_NAME}:latest"
-                        sh "docker tag ${IMAGE_NAME}:latest ${dockerHubImage}"
+            // stage('Push to DockerHub') {
+            //     steps {
+            //         script {
+            //             // Tag pour DockerHub
+            //             def dockerHubImage = "rzem/${SERVICE_NAME}:latest"
+            //             sh "docker tag ${IMAGE_NAME}:latest ${dockerHubImage}"
                         
-                        // Authentification et push vers DockerHub
-                        withCredentials([usernamePassword(
-                            credentialsId: 'dockerCredentiel',
-                            usernameVariable: 'DOCKERHUB_USER',
-                            passwordVariable: 'DOCKERHUB_PASS'
-                        )]) {
-                            sh "docker login -u ${env.DOCKERHUB_USER} -p ${env.DOCKERHUB_PASS}"
-                            sh "docker push ${dockerHubImage}"
-                        }
-                    }
-                }
+            //             // Authentification et push vers DockerHub
+            //             withCredentials([usernamePassword(
+            //                 credentialsId: 'dockerCredentiel',
+            //                 usernameVariable: 'DOCKERHUB_USER',
+            //                 passwordVariable: 'DOCKERHUB_PASS'
+            //             )]) {
+            //                 sh "docker login -u ${env.DOCKERHUB_USER} -p ${env.DOCKERHUB_PASS}"
+            //                 sh "docker push ${dockerHubImage}"
+            //             }
+            //         }
+            //     }
+            // }
+
+
+            stage('Push to DockerHub') {
+        steps {
+          script {
+            withCredentials([
+              usernamePassword(
+                credentialsId: 'dockerCredentiel',
+                usernameVariable: 'DOCKERHUB_USER',
+                passwordVariable: 'DOCKERHUB_PASS'
+              )
+            ]) {
+              sh '''
+                echo "$DOCKERHUB_PASS" | docker login -u $DOCKERHUB_USER --password-stdin
+              '''
+              sh "docker push ${IMAGE_NAME}:latest"
             }
+          }
+        }
+      }
+    
         }
         
         post {
