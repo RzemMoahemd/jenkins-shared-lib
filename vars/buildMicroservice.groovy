@@ -174,21 +174,21 @@ def call(Map config) {
                 }
             }
             
-            stage('Push to Nexus Docker Registry') {
-                steps {
-                    script {
-                        docker.withRegistry(NEXUS_URL, 'nexus-credentials') {
-                            docker.image("${IMAGE_NAME}:latest").push()
-                        }
-                    }
-                }
-            }
+            // stage('Push to Nexus Docker Registry') {
+            //     steps {
+            //         script {
+            //             docker.withRegistry(NEXUS_URL, 'nexus-credentials') {
+            //                 docker.image("${IMAGE_NAME}:latest").push()
+            //             }
+            //         }
+            //     }
+            // }
 
             stage('Push to DockerHub') {
                 steps {
                     script {
                         // Tag pour DockerHub
-                        def dockerHubImage = "votre-nom-dockerhub/${SERVICE_NAME}:latest"
+                        def dockerHubImage = "rzem/${SERVICE_NAME}:latest"
                         sh "docker tag ${IMAGE_NAME}:latest ${dockerHubImage}"
                         
                         // Authentification et push vers DockerHub
