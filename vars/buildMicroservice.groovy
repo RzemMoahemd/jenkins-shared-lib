@@ -100,7 +100,7 @@
 
 def call(Map config) {
     pipeline {
-        agent none
+        agent any
         
         environment {
             HTTP_PROXY = "http://squid-proxy.jenkins:3128"
