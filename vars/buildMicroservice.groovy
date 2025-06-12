@@ -103,7 +103,6 @@ def call(Map config) {
         agent any
         
         environment {
-            DOCKER_HOST = "tcp://localhost:2375"
             HTTP_PROXY = "http://squid-proxy.jenkins:3128"
             HTTPS_PROXY = "http://squid-proxy.jenkins:3128"
             NO_PROXY = "localhost,127.0.0.1,.svc.cluster.local"
@@ -144,14 +143,7 @@ def call(Map config) {
                     }
                 }
             }
-
-            stage('Test Docker') {
-    steps {
-        container('dind') {
-            sh 'docker info'
-        }
-    }
-}
+            
 
             stage('Push Artifact to Nexus') {
                 steps {
