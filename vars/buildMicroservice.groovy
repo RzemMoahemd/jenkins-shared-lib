@@ -100,7 +100,7 @@
 
 def call(Map config) {
     pipeline {
-        agent any
+        agent none
         
         environment {
             HTTP_PROXY = "http://squid-proxy.jenkins:3128"
@@ -154,6 +154,9 @@ def call(Map config) {
             }
 
             stage('Build Docker Image') {
+                agent {
+                   docker { image 'maven:3.8.1-adoptopenjdk-11' }
+                }
                 steps {
                     dir(PROJECT_PATH) {
                         script {
