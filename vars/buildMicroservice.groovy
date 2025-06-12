@@ -145,6 +145,14 @@ def call(Map config) {
                 }
             }
 
+            stage('Test Docker') {
+    steps {
+        container('dind') {
+            sh 'docker info'
+        }
+    }
+}
+
             stage('Push Artifact to Nexus') {
                 steps {
                     dir(PROJECT_PATH) {
