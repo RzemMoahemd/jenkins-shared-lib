@@ -98,32 +98,25 @@
 
 
 
+
+/*
 def call(Map config) {
     pipeline {
         agent any
         
         environment {
-            HTTP_PROXY = "http://squid-proxy.jenkins:3128"
-            HTTPS_PROXY = "http://squid-proxy.jenkins:3128"
-            NO_PROXY = "localhost,127.0.0.1,.svc.cluster.local"
+            //HTTP_PROXY = "http://squid-proxy.jenkins:3128"
+            //HTTPS_PROXY = "http://squid-proxy.jenkins:3128"
+            //NO_PROXY = "localhost,127.0.0.1,.svc.cluster.local"
             SERVICE_NAME = "${config.serviceName}"
             IMAGE_NAME = "rzem/${config.serviceName}" 
             PROJECT_PATH = "${config.projectPath}"
             NEXUS_URL = "http://10.112.62.168:8081/"
-            DOCKERHUB_CREDS = credentials('dockerCredentiel')
+            DOCKERHUB_CREDS = credentials('dockerCredentie')
             KUBECONFIG = credentials('kubeconfig')
         }
         
         stages {
-            // stage('Wait for DNS ready') {
-            //     steps {
-            //         sh '''
-            //             for i in {1..5}; do
-            //                 nslookup github.com && nslookup repo.maven.apache.org && break || sleep 5
-            //             done
-            //         '''
-            //     }
-            // }
 
             stage('Checkout') {
                 steps {
@@ -239,6 +232,104 @@ def call(Map config) {
     }
 }
     
+        }
+        
+        post {
+            always {
+                cleanWs()
+            }
+            success {
+                echo "Build réussi !"
+            }
+            failure {
+                echo "Échec du build"
+            }
+        }
+    }
+}
+
+*/
+
+
+
+
+def call(Map config) {
+    pipeline {
+        agent any
+        
+        environment {
+            SERVICE_NAME = "${config.serviceName}"
+            IMAGE_NAME = "rzem/${config.serviceName}" 
+            PROJECT_PATH = "${config.projectPath}"
+            DOCKERHUB_CREDS = credentials('dockerCredentie')
+            KUBECONFIG = credentials('kubeconfig')
+        }
+        
+        stages {
+            stage('Checkout') {
+                steps {
+                    retry(3) {
+                        timeout(time: 5, unit: 'MINUTES') {
+                            checkout scm
+                        }
+                    }
+                }
+            }   
+            
+            stage('Build') {
+                steps {
+                    dir(PROJECT_PATH) {
+                        // Construction sans déploiement Nexus
+                        sh "mvn clean package -DskipTests"
+                    }
+                }
+            }
+
+            stage('Build Docker Image') {
+                steps {
+                    dir(PROJECT_PATH) {
+                        script {
+                            def pom = readMavenPom file: 'pom.xml'
+                            def artifactId = pom.artifactId
+                            def version = pom.version
+                            
+                            // Construction de l'image Docker
+                            sh "docker build --build-arg ARTIFACT_NAME=${artifactId}-${version}.jar -t ${IMAGE_NAME}:latest ."
+                        }
+                    }
+                }
+            }
+            
+            stage('Push to DockerHub') {
+                steps {
+                    script {
+                        withCredentials([
+                            usernamePassword(
+                                credentialsId: 'dockerCredentiel',
+                                usernameVariable: 'DOCKERHUB_USER',
+                                passwordVariable: 'DOCKERHUB_PASS'
+                            )
+                        ]) {
+                            sh '''
+                                echo "$DOCKERHUB_PASS" | docker login -u $DOCKERHUB_USER --password-stdin
+                            '''
+                            sh "docker push ${IMAGE_NAME}:latest"
+                        }
+                    }
+                }
+            }
+
+            stage('Deploy to Kubernetes') {
+                steps {
+                    script {
+                        dir("${PROJECT_PATH}/k8s") {
+                            sh "kubectl apply -f deployment.yaml"
+                            sh "kubectl rollout status deployment/${SERVICE_NAME} --timeout=300s"
+                            sh "kubectl get pods -l app=${SERVICE_NAME}"
+                        }
+                    }
+                }
+            }
         }
         
         post {
