@@ -328,11 +328,12 @@ def call(Map config) {
             }
         }
         
-        post {
-            always {
-      cleanWs()
-    }
-        
+       post {
+    always {
+        node {
+            cleanWs()
         }
+    }
+}
     }
 }
