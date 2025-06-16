@@ -267,14 +267,10 @@ def call(Map config) {
         
         stages {
             stage('Checkout') {
-                steps {
-                    retry(3) {
-                        timeout(time: 5, unit: 'MINUTES') {
-                            checkout scm
-                        }
-                    }
-                }
-            }   
+      steps {
+        checkout scm
+      }
+    } 
             
             stage('Build') {
                 steps {
@@ -334,8 +330,8 @@ def call(Map config) {
         
         post {
             always {
-                cleanWs()
-            }
+      cleanWs()
+    }
             success {
                 echo "Build réussi !"
             }
