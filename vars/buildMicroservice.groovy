@@ -262,7 +262,7 @@ def call(Map config) {
             SERVICE_NAME = "${config.serviceName}"
             IMAGE_NAME = "rzem/${config.serviceName}" 
             PROJECT_PATH = "${config.projectPath}"
-            DOCKERHUB_CREDS = credentials('dockerCredentie')
+            DOCKERHUB_CREDS = credentials('dockerCredentiel')
             KUBECONFIG = credentials('kubeconfig')
         }
         
