@@ -332,12 +332,7 @@ def call(Map config) {
             always {
       cleanWs()
     }
-            success {
-                echo "Build réussi !"
-            }
-            failure {
-                echo "Échec du build"
-            }
+        
         }
     }
 }
