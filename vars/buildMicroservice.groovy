@@ -253,6 +253,7 @@ def call(Map config) {
 
 
 
+
 def call(Map config) {
     pipeline {
         agent any
@@ -267,20 +268,23 @@ def call(Map config) {
         
         stages {
             stage('Checkout') {
-      steps {
-        checkout scm
-      }
-    } 
+                steps {
+                    retry(3) {
+                        timeout(time: 5, unit: 'MINUTES') {
+                            checkout scm
+                        }
+                    }
+                 }
+            }   
             
             stage('Build') {
                 steps {
                     dir(PROJECT_PATH) {
-                        // Construction sans déploiement Nexus
-                        sh "mvn clean package -DskipTests"
+                        sh "mvn -s /opt/apache-maven-3.6.3/conf/settings.xml clean package -DskipTests"
                     }
                 }
             }
-
+            
             stage('Build Docker Image') {
                 steps {
                     dir(PROJECT_PATH) {
@@ -289,13 +293,13 @@ def call(Map config) {
                             def artifactId = pom.artifactId
                             def version = pom.version
                             
-                            // Construction de l'image Docker
-                            sh "docker build --build-arg ARTIFACT_NAME=${artifactId}-${version}.jar -t ${IMAGE_NAME}:latest ."
+                            // Utilisation directe de l'artefact local
+                            sh "docker build --build-arg ARTIFACT_NAME=target/${artifactId}-${version}.jar -t ${IMAGE_NAME}:latest ."
                         }
                     }
                 }
             }
-            
+
             stage('Push to DockerHub') {
                 steps {
                     script {
@@ -330,9 +334,14 @@ def call(Map config) {
         
         post {
             always {
-      cleanWs()
-    }
-        
+                cleanWs()
+            }
+            success {
+                echo "Build réussi !"
+            }
+            failure {
+                echo "Échec du build"
+            }
         }
     }
 }
