@@ -307,9 +307,10 @@ def call(Map config) {
                 // Récupération de l'artifactId et version via shell
                 def artifactId = sh(script: "grep -m1 '<artifactId>' pom.xml | cut -d'>' -f2 | cut -d'<' -f1", returnStdout: true).trim()
                 def version = sh(script: "grep -m1 '<version>' pom.xml | cut -d'>' -f2 | cut -d'<' -f1", returnStdout: true).trim()
-                
+                container('build') {
                 // Construction de l'image Docker
                 sh "docker build --build-arg ARTIFACT_NAME=target/${artifactId}-${version}.jar -t ${IMAGE_NAME}:latest ."
+                }
             }
         }
     }
