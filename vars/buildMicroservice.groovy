@@ -285,36 +285,20 @@ def call(Map config) {
                 }
             }
             
-            // stage('Build Docker Image') {
-            //     steps {
-            //         dir(PROJECT_PATH) {
-            //             script {
-            //                 def pom = readMavenPom file: 'pom.xml'
-            //                 def artifactId = pom.artifactId
-            //                 def version = pom.version
-                            
-            //                 // Utilisation directe de l'artefact local
-            //                 sh "docker build --build-arg ARTIFACT_NAME=target/${artifactId}-${version}.jar -t ${IMAGE_NAME}:latest ."
-            //             }
-            //         }
-            //     }
-            // }
-
             stage('Build Docker Image') {
-    steps {
-        dir(PROJECT_PATH) {
-            script {
-                // Récupération de l'artifactId et version via shell
-                def artifactId = sh(script: "grep -m1 '<artifactId>' pom.xml | cut -d'>' -f2 | cut -d'<' -f1", returnStdout: true).trim()
-                def version = sh(script: "grep -m1 '<version>' pom.xml | cut -d'>' -f2 | cut -d'<' -f1", returnStdout: true).trim()
-                container('build') {
-                // Construction de l'image Docker
-                sh "docker build --build-arg ARTIFACT_NAME=target/${artifactId}-${version}.jar -t ${IMAGE_NAME}:latest ."
+                steps {
+                    dir(PROJECT_PATH) {
+                        script {
+                            def pom = readMavenPom file: 'pom.xml'
+                            def artifactId = pom.artifactId
+                            def version = pom.version
+                            
+                            // Utilisation directe de l'artefact local
+                            sh "docker build --build-arg ARTIFACT_NAME=target/${artifactId}-${version}.jar -t ${IMAGE_NAME}:latest ."
+                        }
+                    }
                 }
             }
-        }
-    }
-}
 
             stage('Push to DockerHub') {
                 steps {
