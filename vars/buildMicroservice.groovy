@@ -256,14 +256,8 @@ def call(Map config) {
 
 def call(Map config) {
     pipeline {
-        //agent any
-        agent {
-    kubernetes {
-      label 'docker-agent'
-      defaultContainer 'build'
-    }
-  }
-
+        agent any
+        
         environment {
             SERVICE_NAME = "${config.serviceName}"
             IMAGE_NAME = "rzem/${config.serviceName}" 
@@ -306,31 +300,20 @@ def call(Map config) {
             //     }
             // }
 
-//             stage('Build Docker Image') {
-//     steps {
-//         dir(PROJECT_PATH) {
-//             script {
-//                 // Récupération de l'artifactId et version via shell
-//                 def artifactId = sh(script: "grep -m1 '<artifactId>' pom.xml | cut -d'>' -f2 | cut -d'<' -f1", returnStdout: true).trim()
-//                 def version = sh(script: "grep -m1 '<version>' pom.xml | cut -d'>' -f2 | cut -d'<' -f1", returnStdout: true).trim()
+            stage('Build Docker Image') {
+    steps {
+        dir(PROJECT_PATH) {
+            script {
+                // Récupération de l'artifactId et version via shell
+                def artifactId = sh(script: "grep -m1 '<artifactId>' pom.xml | cut -d'>' -f2 | cut -d'<' -f1", returnStdout: true).trim()
+                def version = sh(script: "grep -m1 '<version>' pom.xml | cut -d'>' -f2 | cut -d'<' -f1", returnStdout: true).trim()
                 
-//                 // Construction de l'image Docker
-//                 sh "docker build --build-arg ARTIFACT_NAME=target/${artifactId}-${version}.jar -t ${IMAGE_NAME}:latest ."
-//             }
-//         }
-//     }
-// }
-
-stages {
-    stage('Docker test') {
-      steps {
-        container('build') {
-          sh 'docker version'
-          sh 'docker build -t my-app:latest .'
+                // Construction de l'image Docker
+                sh "docker build --build-arg ARTIFACT_NAME=target/${artifactId}-${version}.jar -t ${IMAGE_NAME}:latest ."
+            }
         }
-      }
     }
-  }
+}
 
             stage('Push to DockerHub') {
                 steps {
