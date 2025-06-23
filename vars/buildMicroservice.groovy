@@ -262,7 +262,7 @@ def call(Map config) {
             SERVICE_NAME = "${config.serviceName}"
             IMAGE_NAME = "rzem/${config.serviceName}" 
             PROJECT_PATH = "${config.projectPath}"
-            DOCKERHUB_CREDS = credentials('dockerCredentiel')
+            DOCKERHUB_CREDS = credentials('dockerhub-cred')
             KUBECONFIG = credentials('kubeconfig')
         }
         
@@ -320,7 +320,7 @@ def call(Map config) {
                     script {
                         withCredentials([
                             usernamePassword(
-                                credentialsId: 'dockerCredentiel',
+                                credentialsId: 'dockerhub-cred',
                                 usernameVariable: 'DOCKERHUB_USER',
                                 passwordVariable: 'DOCKERHUB_PASS'
                             )
