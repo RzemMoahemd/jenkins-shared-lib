@@ -256,11 +256,16 @@ def call(Map config) {
 
 def call(Map config) {
     pipeline {
-        agent any
+        //agent any
 
-        tools {
-            dockerTool 'docker'  // Nom que tu as donné dans la config Jenkins
-        }
+
+        agent {
+    kubernetes {
+      label 'jenkins-agent-docker'  // Ton pod agent
+      defaultContainer 'jnlp'       // Très important
+    }
+  }
+
         
         environment {
             SERVICE_NAME = "${config.serviceName}"
@@ -280,6 +285,12 @@ def call(Map config) {
                     }
                  }
             }   
+
+            stage('Test Docker Access') {
+    steps {
+        sh 'docker version'
+    }
+}
             
             stage('Build') {
                 steps {
