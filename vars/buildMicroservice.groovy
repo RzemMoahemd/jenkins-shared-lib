@@ -257,6 +257,10 @@ def call(Map config) {
 def call(Map config) {
     pipeline {
         agent any
+
+        tools {
+            dockerTool 'docker'  // Nom que tu as donné dans la config Jenkins
+        }
         
         environment {
             SERVICE_NAME = "${config.serviceName}"
