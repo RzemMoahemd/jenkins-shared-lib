@@ -342,7 +342,7 @@ def call(Map config) {
 
                              withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
                                 sh """
-                                    kubectl apply -f deployment.yaml --kubeconfig="\$KUBECONFIG"
+                                    kubectl apply -f deployment.yaml --kubeconfig="\$KUBECONFIG --validate=false"
                                 """
                             }
                             //sh "unset http_proxy"
