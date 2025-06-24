@@ -341,24 +341,39 @@ def call(Map config) {
                     script {
                         dir("${PROJECT_PATH}/k8s") {
 
-                            withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+                             withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG_FILE')]) {
                                 sh """
-                                   
-                                    export no_proxy="${NO_PROXY}" 
-                                   
-                                    kubectl --kubeconfig="\$KUBECONFIG" cluster-info                                  
+                                    export no_proxy="${NO_PROXY}"
                                     
-                                    kubectl --kubeconfig="\$KUBECONFIG" apply -f deployment.yaml --validate=false
+                                    # Appliquer les manifests
+                                    kubectl --kubeconfig="\$KUBECONFIG_FILE" apply -f deployment.yaml --validate=false
+                                    
+                                    # Vérifier le déploiement
+                                    kubectl --kubeconfig="\$KUBECONFIG_FILE" rollout status deployment/${SERVICE_NAME} --timeout=300s
+                                    
+                                    # Vérifier les pods
+                                    kubectl --kubeconfig="\$KUBECONFIG_FILE" get pods -l app=${SERVICE_NAME}
                                 """
                             }
-                            //sh "unset http_proxy"
-                            //sh "unset https_proxy"
-                           // sh "kubectl apply -f deployment.yaml --kubeconfig=${KUBECONFIG} --context=master-node"
-                            //sh "kubectl --server=https://192.16.0.233:6443 apply -f deployment.yaml"
-                            //sh "kubectl --kubeconfig=\${KUBECONFIG} apply -f deployment.yaml --validate=false"
-                            //sh "kubectl apply -f deployment.yaml --validate=false"
-                            sh "kubectl rollout status deployment/${SERVICE_NAME} --timeout=300s"
-                            sh "kubectl get pods -l app=${SERVICE_NAME}"
+
+                        //     withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+                        //         sh """
+                                   
+                        //             export no_proxy="${NO_PROXY}" 
+                                   
+                        //             kubectl --kubeconfig="\$KUBECONFIG" cluster-info                                  
+                                    
+                        //             kubectl --kubeconfig="\$KUBECONFIG" apply -f deployment.yaml --validate=false
+                        //         """
+                        //     }
+                        //     //sh "unset http_proxy"
+                        //     //sh "unset https_proxy"
+                        //    // sh "kubectl apply -f deployment.yaml --kubeconfig=${KUBECONFIG} --context=master-node"
+                        //     //sh "kubectl --server=https://192.16.0.233:6443 apply -f deployment.yaml"
+                        //     //sh "kubectl --kubeconfig=\${KUBECONFIG} apply -f deployment.yaml --validate=false"
+                        //     //sh "kubectl apply -f deployment.yaml --validate=false"
+                        //     sh "kubectl rollout status deployment/${SERVICE_NAME} --timeout=300s"
+                        //     sh "kubectl get pods -l app=${SERVICE_NAME}"
                         }
                     }
                 }
