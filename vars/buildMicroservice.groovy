@@ -345,14 +345,28 @@ def call(Map config) {
                                 sh """
                                     export no_proxy="${NO_PROXY}"
                                     
-                                    # Appliquer les manifests
+                                    # 1. Vérifier le contexte actuel
+                                    echo "=== Contextes disponibles ==="
+                                    kubectl --kubeconfig="\$KUBECONFIG_FILE" config get-contexts
+                                    
+                                    # 2. Appliquer les manifests avec namespace explicite
                                     kubectl --kubeconfig="\$KUBECONFIG_FILE" apply -f deployment.yaml --validate=false
                                     
-                                    # Vérifier le déploiement
-                                    kubectl --kubeconfig="\$KUBECONFIG_FILE" rollout status deployment/${SERVICE_NAME} --timeout=300s
+                                    # 3. Trouver le namespace du déploiement
+                                    NAMESPACE=\$(kubectl --kubeconfig="\$KUBECONFIG_FILE" get deployment -A -o json | jq -r '.items[] | select(.metadata.name=="${SERVICE_NAME}") | .metadata.namespace')
                                     
-                                    # Vérifier les pods
-                                    kubectl --kubeconfig="\$KUBECONFIG_FILE" get pods -l app=${SERVICE_NAME}
+                                    if [ -z "\$NAMESPACE" ]; then
+                                        echo "Aucun déploiement trouvé pour ${SERVICE_NAME}"
+                                        exit 1
+                                    fi
+                                    
+                                    echo "Déploiement trouvé dans le namespace: \$NAMESPACE"
+                                    
+                                    # 4. Vérifier le déploiement dans le bon namespace
+                                    kubectl --kubeconfig="\$KUBECONFIG_FILE" -n \$NAMESPACE rollout status deployment/${SERVICE_NAME} --timeout=300s
+                                    
+                                    # 5. Vérifier les pods
+                                    kubectl --kubeconfig="\$KUBECONFIG_FILE" -n \$NAMESPACE get pods -l app=${SERVICE_NAME}
                                 """
                             }
 
