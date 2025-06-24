@@ -265,6 +265,7 @@ def call(Map config) {
             PROJECT_PATH = "${config.projectPath}"
             DOCKERHUB_CREDS = credentials('dockerhub-cred')
             KUBECONFIG = credentials('kubeconfig')
+            NO_PROXY = "192.16.0.233,localhost,127.0.0.1,.svc.cluster.local"
         }
         
         stages {
@@ -340,16 +341,21 @@ def call(Map config) {
                     script {
                         dir("${PROJECT_PATH}/k8s") {
 
-                            //  withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
-                            //     sh """
-                            //         kubectl apply -f deployment.yaml --kubeconfig="\$KUBECONFIG --validate=false"
-                            //     """
-                            // }
+                            withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+                                sh """
+                                   
+                                    export no_proxy="${NO_PROXY}" 
+                                   
+                                    kubectl --kubeconfig="\$KUBECONFIG" cluster-info                                  
+                                    
+                                    kubectl --kubeconfig="\$KUBECONFIG" apply -f deployment.yaml --validate=false
+                                """
+                            }
                             //sh "unset http_proxy"
                             //sh "unset https_proxy"
                            // sh "kubectl apply -f deployment.yaml --kubeconfig=${KUBECONFIG} --context=master-node"
                             //sh "kubectl --server=https://192.16.0.233:6443 apply -f deployment.yaml"
-                            sh "kubectl --kubeconfig=\${KUBECONFIG} apply -f deployment.yaml --validate=false"
+                            //sh "kubectl --kubeconfig=\${KUBECONFIG} apply -f deployment.yaml --validate=false"
                             //sh "kubectl apply -f deployment.yaml --validate=false"
                             sh "kubectl rollout status deployment/${SERVICE_NAME} --timeout=300s"
                             sh "kubectl get pods -l app=${SERVICE_NAME}"
