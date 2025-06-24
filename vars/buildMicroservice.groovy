@@ -345,14 +345,14 @@ def call(Map config) {
                                 sh """
                                     export no_proxy="${NO_PROXY}"
                                     
-                                    # 1. Vérifier le contexte actuel
+                                   
                                     echo "=== Contextes disponibles ==="
                                     kubectl --kubeconfig="\$KUBECONFIG_FILE" config get-contexts
                                     
-                                    # 2. Appliquer les manifests avec namespace explicite
+                                    
                                     kubectl --kubeconfig="\$KUBECONFIG_FILE" apply -f deployment.yaml --validate=false
                                     
-                                    # 3. Trouver le namespace du déploiement
+                                   
                                     NAMESPACE=\$(kubectl --kubeconfig="\$KUBECONFIG_FILE" get deployment -A -o json | jq -r '.items[] | select(.metadata.name=="${SERVICE_NAME}") | .metadata.namespace')
                                     
                                     if [ -z "\$NAMESPACE" ]; then
@@ -362,10 +362,10 @@ def call(Map config) {
                                     
                                     echo "Déploiement trouvé dans le namespace: \$NAMESPACE"
                                     
-                                    # 4. Vérifier le déploiement dans le bon namespace
+                                  
                                     kubectl --kubeconfig="\$KUBECONFIG_FILE" -n \$NAMESPACE rollout status deployment/${SERVICE_NAME} --timeout=300s
                                     
-                                    # 5. Vérifier les pods
+                                  
                                     kubectl --kubeconfig="\$KUBECONFIG_FILE" -n \$NAMESPACE get pods -l app=${SERVICE_NAME}
                                 """
                             }
