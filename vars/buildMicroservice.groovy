@@ -266,6 +266,7 @@ def call(Map config) {
             DOCKERHUB_CREDS = credentials('dockerhub-cred')
             KUBECONFIG = credentials('kubeconfig')
             NO_PROXY = "192.16.0.233,localhost,127.0.0.1,.svc.cluster.local"
+            NAMESPACE = "default"
         }
         
         stages {
@@ -341,34 +342,23 @@ def call(Map config) {
                     script {
                         dir("${PROJECT_PATH}/k8s") {
 
-                             withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG_FILE')]) {
+                            withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG_FILE')]) {
                                 sh """
                                     export no_proxy="${NO_PROXY}"
                                     
-                                   
-                                    echo "=== Contextes disponibles ==="
-                                    kubectl --kubeconfig="\$KUBECONFIG_FILE" config get-contexts
-                                    
-                                    
+                                    # Appliquer les manifests
                                     kubectl --kubeconfig="\$KUBECONFIG_FILE" apply -f deployment.yaml --validate=false
                                     
-                                   
-                                    NAMESPACE=\$(kubectl --kubeconfig="\$KUBECONFIG_FILE" get deployment -A -o json | jq -r '.items[] | select(.metadata.name=="${SERVICE_NAME}") | .metadata.namespace')
+                                    # Vérifier le déploiement dans le namespace 'default'
+                                    kubectl --kubeconfig="\$KUBECONFIG_FILE" -n ${NAMESPACE} rollout status deployment/${SERVICE_NAME} --timeout=300s
                                     
-                                    if [ -z "\$NAMESPACE" ]; then
-                                        echo "Aucun déploiement trouvé pour ${SERVICE_NAME}"
-                                        exit 1
-                                    fi
-                                    
-                                    echo "Déploiement trouvé dans le namespace: \$NAMESPACE"
-                                    
-                                  
-                                    kubectl --kubeconfig="\$KUBECONFIG_FILE" -n \$NAMESPACE rollout status deployment/${SERVICE_NAME} --timeout=300s
-                                    
-                                  
-                                    kubectl --kubeconfig="\$KUBECONFIG_FILE" -n \$NAMESPACE get pods -l app=${SERVICE_NAME}
+                                    # Vérifier les pods
+                                    kubectl --kubeconfig="\$KUBECONFIG_FILE" -n ${NAMESPACE} get pods -l app=${SERVICE_NAME}
                                 """
                             }
+                                    
+                                   
+                                   
 
                         //     withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
                         //         sh """
