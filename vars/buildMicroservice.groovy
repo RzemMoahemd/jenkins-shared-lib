@@ -280,13 +280,26 @@ def call(Map config) {
                  }
             }   
             
+            // stage('Build') {
+            //     steps {
+            //         dir(PROJECT_PATH) {
+            //             sh "mvn -s /opt/apache-maven-3.6.3/conf/settings.xml clean package -DskipTests"
+            //         }
+            //     }
+            // }
+
             stage('Build') {
                 steps {
-                    dir(PROJECT_PATH) {
-                        sh "mvn -s /opt/apache-maven-3.6.3/conf/settings.xml clean package -DskipTests"
+                    retry(3) {
+                        timeout(time: 10, unit: 'MINUTES') {
+                            dir(PROJECT_PATH) {
+                            sh "mvn -U -s /opt/apache-maven-3.6.3/conf/settings.xml clean package -DskipTests"
+                            }
+                        }
                     }
-                }
+                }   
             }
+
             
             // stage('Build Docker Image') {
             //     steps {
