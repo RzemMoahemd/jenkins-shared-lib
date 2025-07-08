@@ -331,24 +331,53 @@ def call(Map config) {
     }
 }
 
+            // stage('Push to DockerHub') {
+            //     steps {
+            //         script {
+            //             withCredentials([
+            //                 usernamePassword(
+            //                     credentialsId: 'dockerhub-cred',
+            //                     usernameVariable: 'DOCKERHUB_USER',
+            //                     passwordVariable: 'DOCKERHUB_PASS'
+            //                 )
+            //             ]) {
+            //                 sh '''
+            //                     echo "$DOCKERHUB_PASS" | docker login -u $DOCKERHUB_USER --password-stdin
+            //                 '''
+            //                 sh "docker push ${IMAGE_NAME}:latest"
+            //             }
+            //         }
+            //     }
+            // }
+
             stage('Push to DockerHub') {
-                steps {
-                    script {
-                        withCredentials([
-                            usernamePassword(
-                                credentialsId: 'dockerhub-cred',
-                                usernameVariable: 'DOCKERHUB_USER',
-                                passwordVariable: 'DOCKERHUB_PASS'
-                            )
-                        ]) {
-                            sh '''
-                                echo "$DOCKERHUB_PASS" | docker login -u $DOCKERHUB_USER --password-stdin
-                            '''
-                            sh "docker push ${IMAGE_NAME}:latest"
-                        }
-                    }
-                }
+    steps {
+        script {
+            withCredentials([
+                usernamePassword(
+                    credentialsId: 'dockerhub-cred',
+                    usernameVariable: 'DOCKERHUB_USER',
+                    passwordVariable: 'DOCKERHUB_PASS'
+                )
+            ]) {
+                sh '''
+                    echo "$DOCKERHUB_PASS" | docker login -u $DOCKERHUB_USER --password-stdin
+                    docker push ${IMAGE_NAME}:latest
+                    
+                    echo "🟢 Vérification de l'image locale avant et après le push :"
+                    docker images ${IMAGE_NAME}
+                    
+                    echo "🟢 Digest de l'image poussée :"
+                    docker inspect --format='Image ID: {{.Id}} | RepoDigests: {{.RepoDigests}}' ${IMAGE_NAME}:latest
+                    
+                    echo "🟢 Compte Docker Hub connecté :"
+                    cat ~/.docker/config.json | grep '"auths"' -A 5
+                '''
             }
+        }
+    }
+}
+
 
             stage('Deploy to Kubernetes') {
                 steps {
