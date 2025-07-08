@@ -345,6 +345,7 @@ def call(Map config) {
                                 echo "$DOCKERHUB_PASS" | docker login -u $DOCKERHUB_USER --password-stdin
                             '''
                             sh "docker push ${IMAGE_NAME}:latest"
+                            docker info | grep Username
                         }
                     }
                 }
